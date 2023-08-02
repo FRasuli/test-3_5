@@ -8,10 +8,28 @@ const statusOk = 200;
 let nextId = 1;
 const posts = [];
 
+function sendResponse(response, {status = statusOk, headers = {}, body = null}) {
+    Object.entries(headers).forEach(function([key, value]) {
+        response.setHeader(key, value);
+    });
+    response.writeHead(status);
+    response.end(body);
+}
+
+function SendJSON(response, body) {
+    sendResponse(response, {
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
+    });
+}
+
 const methods = new Map();
 methods.set('/posts.get', function({response}){
-    response.writeHead(statusOk, {'Content-Type': 'application/json'});
-    response.end(JSON.stringify(posts));
+    SendJSON(response, posts);
+    //response.writeHead(statusOk, {'Content-Type': 'application/json'});
+    //response.end(JSON.stringify(posts));
 });
 methods.set('/posts.getById', function(){});
 methods.set('/posts.post', function({response, searchParams}){
@@ -19,8 +37,9 @@ methods.set('/posts.post', function({response, searchParams}){
     //const searchParams = url.searchParams;
 
     if (!searchParams.has('content')) {
-        response.writeHead(statusBadRequest);
-        response.end();
+        //response.writeHead(statusBadRequest);
+        //response.end();
+        sendResponse(response, {status: statusBadRequest});
         return;
     }
     
@@ -33,8 +52,9 @@ methods.set('/posts.post', function({response, searchParams}){
     };
 
     posts.unshift(post);
-    response.writeHead(statusOk, {'Content-Type': 'application/json'});
-    response.end(JSON.stringify(post));
+    SendJSON(response, post);
+    //response.writeHead(statusOk, {'Content-Type': 'application/json'});
+    //response.end(JSON.stringify(post));
 
 });
 methods.set('/pos ts.edit', function(){});
@@ -52,8 +72,9 @@ const server = http.createServer(function(request, response) {
 
     const method = methods.get(pathname);
     if (method === undefined) {
-        response.writeHead(statusNotFound);
-        response.end();
+        //response.writeHead(statusNotFound);
+        //response.end();
+        sendResponse(response, {status: statusNotFound});
         return;
     }
 
@@ -68,6 +89,10 @@ const server = http.createServer(function(request, response) {
 });
 
 server.listen(port);
+
+
+
+
 
 /*class Demo {
     get property() {
